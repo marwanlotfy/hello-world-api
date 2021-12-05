@@ -6,7 +6,7 @@ ENV APP_PORT=3000
 
 WORKDIR /app
 
-COPY package*.json .
+COPY package*.json /app/
 
 RUN npm install
 
