@@ -1,6 +1,8 @@
 const express = require('express');
 const morgan = require('morgan');
 const cors = require('cors');
+const EventEmitter = require('events')
+const eventEmitter = new EventEmitter();
 
 const app = express();
 
@@ -11,12 +13,22 @@ app.get('/api/v1/hello-world', (req,res) => {
 
     const { name } = req.query;
 
-    const message = name ? `hello ${name}` : 'hello world';
+    const message =  `hello ${name??'world'}`;
+
+    eventEmitter.emit('msg', message);
 
     return res.json({
         message,
     });
 
+});
+
+app.get('/api/v1/sse',(req , res ) => {
+    res.header('Content-Type',"text/event-stream");
+    res.header('Cache-Control',"no-cache");
+    res.header('Connection',"keep-alive");
+
+    eventEmitter.on('msg', message => res.write(`data: ${message} sent\n\n`) );
 });
 
 app.use((req , res) => {
