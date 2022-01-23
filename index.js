@@ -11,32 +11,26 @@ app.use(cors());
 
 app.get('/api/v1/hello-world', (req,res) => {
 
-    const { name } = req.query;
-
-    const message =  `hello ${name??'world'}`;
+    const message =  `hello ${ req.query.name ?? 'world' }`;
 
     eventEmitter.emit('msg', message);
 
-    return res.json({
-        message,
-    });
+    return res.json({message});
 
 });
 
-app.get('/api/v1/sse',(req , res ) => {
+app.get('/api/v1/sse',( _req , res ) => {
     res.header('Content-Type',"text/event-stream");
     res.header('Cache-Control',"no-cache");
     res.header('Connection',"keep-alive");
 
-    eventEmitter.on('msg', message => res.write(`data: ${message} sent\n\n`) );
+    const listener =  message => res.write(`data: ${message} sent\n\n`);
+
+    eventEmitter.on('msg',listener);
+
+    res.on("close", () => eventEmitter.removeListener('msg',listener) );
 });
 
-app.use((req , res) => {
-    return res.status(404).json({
-        message: 'resource not found'
-    });
-})
+app.use(( _req , res) =>  res.status(404).json({ message: 'resource not found' }) );
 
-app.listen(process.env.APP_PORT,() => {
-    console.log(`app is running on http://localhost:${process.env.APP_PORT}`);
-});
+app.listen(process.env.APP_PORT||3000,() => console.log(`app is running on http://localhost:${process.env.APP_PORT}`) );
